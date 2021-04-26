@@ -63,6 +63,7 @@ local function decrement(premature, conf, identifier, value)
 end
 
 function ConcurrentConnectionsQuotaHandler:access(conf)
+  kong.ctx.plugin.decrement_on_log = true
   local identifier = get_identifier(conf)
   kong.ctx.plugin.identifier = identifier
   local fault_tolerant = conf.fault_tolerant
@@ -96,6 +97,7 @@ function ConcurrentConnectionsQuotaHandler:access(conf)
 
     -- If limit is exceeded, terminate the request
     if stop then
+      kong.ctx.plugin.decrement_on_log = false
       return kong.response.error(429, "API rate limit exceeded")
     end
   end
@@ -114,10 +116,12 @@ function ConcurrentConnectionsQuotaHandler:header_filter(_)
 end
 
 function ConcurrentConnectionsQuotaHandler:log(conf)
-  local identifier = kong.ctx.plugin.identifier
-  local ok, err = timer_at(0, decrement, conf, identifier, 1)
-  if not ok then
-    kong.log.err("failed to create decrement timer: ", err)
+  if kong.ctx.plugin.decrement_on_log then
+    local identifier = kong.ctx.plugin.identifier
+    local ok, err = timer_at(0, decrement, conf, identifier, 1)
+    if not ok then
+      kong.log.err("failed to create decrement timer: ", err)
+    end
   end
 end
 
