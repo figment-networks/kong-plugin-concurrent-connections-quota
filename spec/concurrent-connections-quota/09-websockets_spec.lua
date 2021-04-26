@@ -5,8 +5,8 @@ local cjson = require "cjson"
 local PLUGIN_NAME = "concurrent-connections-quota"
 local auth_key    = "kong"
 local auth_key2   = "godzilla"
-local redis_host = helpers.redis_host
-local redis_port = 6379
+local redis_host  = helpers.redis_host
+local redis_port  = 6379
 local strategy    = "postgres"
 
 describe("Websockets [#" .. strategy .. "]", function()
@@ -51,7 +51,18 @@ describe("Websockets [#" .. strategy .. "]", function()
 
     bp.plugins:insert {
       name = PLUGIN_NAME,
-      route = { id = route.id },
+      consumer = { id = consumer.id },
+      config = {
+        limit = 1,
+        policy = "redis",
+        redis_host = redis_host,
+        redis_port = redis_port
+      }
+    }
+
+    bp.plugins:insert {
+      name = PLUGIN_NAME,
+      consumer = { id = consumer2.id },
       config = {
         limit = 1,
         policy = "redis",
@@ -62,7 +73,7 @@ describe("Websockets [#" .. strategy .. "]", function()
 
     bp.plugins:insert {
       name = "key-auth",
-      route = { id = route.id },
+      service = { id = service.id },
       config = {
         key_names =  { "apikey", "Authorization", "X-Api-Key" },
         hide_credentials = false,
