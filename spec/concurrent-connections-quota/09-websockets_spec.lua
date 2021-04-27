@@ -1,6 +1,7 @@
-local client = require "resty.websocket.client"
 local helpers = require "spec.helpers"
 local cjson = require "cjson"
+local client = require "resty.websocket.client"
+local proxy_client = helpers.proxy_client
 
 local PLUGIN_NAME = "concurrent-connections-quota"
 local auth_key    = "kong"
@@ -80,6 +81,22 @@ describe("Websockets [#" .. strategy .. "]", function()
       }
     }
 
+    -- http route
+    local route1 = bp.routes:insert {
+      hosts = { "test1.com" },
+    }
+
+    bp.plugins:insert {
+      name = PLUGIN_NAME,
+      route = { id = route1.id },
+      config = {
+        limit = 1,
+        policy = "redis",
+        redis_host = redis_host,
+        redis_port = redis_port
+      }
+    }
+
     assert(helpers.start_kong({
       database   = strategy,
       nginx_conf = "spec/fixtures/custom_nginx.template",
@@ -98,6 +115,37 @@ describe("Websockets [#" .. strategy .. "]", function()
     }))
     return wc
   end
+
+  local function GET(url, opts, res_status)
+    ngx.sleep(0.010)
+
+    local client = proxy_client()
+    local res, err  = client:get(url, opts)
+    if not res then
+      client:close()
+      return nil, err
+    end
+
+    local body, err = assert.res_status(res_status, res)
+    if not body then
+      return nil, err
+    end
+
+    client:close()
+
+    return res, body
+  end
+
+  it("responds with X-Concurrent-Quota headers", function()
+    local res = GET("/status/200", {
+      headers = {
+        apikey = auth_key,
+        Host = "test1.com" },
+    }, 200)
+
+    assert.are.same(1, tonumber(res.headers["X-Concurrent-Quota-Limit"]))
+    assert.are.same(0, tonumber(res.headers["X-Concurrent-Quota-Remaining"]))
+  end)
 
   describe("text", function()
     local function send_text_and_get_echo(uri)
