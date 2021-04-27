@@ -24,7 +24,7 @@ describe("Websockets [#" .. strategy .. "]", function()
       path = "/ws",
     }
 
-    local route = bp.routes:insert {
+    bp.routes:insert {
       protocols   = { "http" },
       paths       = { "/up-ws" },
       service     = service,
