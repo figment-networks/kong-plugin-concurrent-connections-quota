@@ -9,6 +9,7 @@ version = "0.1.0-1"                                  -- renumber, must match the
 -- Here we extract it from the package name.
 local pluginName = package:match("^kong%-plugin%-(.+)$")  -- "concurrent-connections-quota"
 
+rockspec_format = "3.0"
 supported_platforms = {"linux", "macosx"}
 source = {
   url = "git://github.com/figment-networks/kong-plugin-concurrent-connections-quota.git",
@@ -26,6 +27,6 @@ build = {
   modules = {
     ["kong.plugins."..pluginName..".handler"] = "kong/plugins/"..pluginName.."/handler.lua",
     ["kong.plugins."..pluginName..".schema"]  = "kong/plugins/"..pluginName.."/schema.lua",
-    ["kong.plugins."..pluginName..".policy"]  = "kong/plugins/"..pluginName.."/policies/init.lua",
+    ["kong.plugins."..pluginName..".policies"]  = "kong/plugins/"..pluginName.."/policies/init.lua",
   }
 }
