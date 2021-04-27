@@ -10,8 +10,8 @@ local ConcurrentConnectionsQuotaHandler = {
 }
 
 local EMPTY = {}
-local RATELIMIT_LIMIT     = "Quota-Limit"
-local RATELIMIT_REMAINING = "Quota-Remaining"
+local RATELIMIT_LIMIT     = "X-Concurrent-Quota-Limit"
+local RATELIMIT_REMAINING = "X-Concurrent-Quota-Remaining"
 
 local function get_identifier(conf)
   local identifier= (kong.client.get_consumer() or
