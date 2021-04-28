@@ -1,7 +1,6 @@
 local helpers = require "spec.helpers"
 local cjson = require "cjson"
 local client = require "resty.websocket.client"
-local proxy_client = helpers.proxy_client
 
 local PLUGIN_NAME = "concurrent-connections-quota"
 local auth_key    = "kong"
@@ -11,6 +10,8 @@ local redis_port  = 6379
 local strategy    = "postgres"
 
 describe("Websockets [#" .. strategy .. "]", function()
+  local proxy_client
+
   lazy_setup(function()
     local bp = helpers.get_db_utils(strategy, {
       "routes",
@@ -116,35 +117,24 @@ describe("Websockets [#" .. strategy .. "]", function()
     return wc
   end
 
-  local function GET(url, opts, res_status)
-    ngx.sleep(0.010)
+  before_each(function()
+    proxy_client = helpers.proxy_client()
+  end)
 
-    local client = proxy_client()
-    local res, err  = client:get(url, opts)
-    if not res then
-      client:close()
-      return nil, err
-    end
-
-    local body, err = assert.res_status(res_status, res)
-    if not body then
-      return nil, err
-    end
-
-    client:close()
-
-    return res, body
-  end
+  after_each(function()
+    if proxy_client then proxy_client:close() end
+  end)
 
   it("responds with X-Concurrent-Quota headers", function()
-    local res = GET("/status/200", {
+    local res = proxy_client:get("/status/200", {
       headers = {
-        apikey = auth_key,
-        Host = "test1.com" },
-    }, 200)
+        Host = "test1.com"
+      },
+    })
 
-    assert.are.same(1, tonumber(res.headers["X-Concurrent-Quota-Limit"]))
-    assert.are.same(0, tonumber(res.headers["X-Concurrent-Quota-Remaining"]))
+    assert.res_status(200, res)
+    assert.equal("1", res.headers["X-Concurrent-Quota-Limit"])
+    assert.equal("0", res.headers["X-Concurrent-Quota-Remaining"])
   end)
 
   describe("text", function()
