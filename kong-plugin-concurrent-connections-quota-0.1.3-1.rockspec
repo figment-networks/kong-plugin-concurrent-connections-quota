@@ -12,7 +12,7 @@ local pluginName = package:match("^kong%-plugin%-(.+)$")  -- "concurrent-connect
 rockspec_format = "3.0"
 supported_platforms = {"linux", "macosx"}
 source = {
-  url = "git://github.com/figment-networks/kong-plugin-concurrent-connections-quota.git",
+  url = "https://github.com/figment-networks/kong-plugin-concurrent-connections-quota.git",
   tag = "0.1.3"
 }
 
