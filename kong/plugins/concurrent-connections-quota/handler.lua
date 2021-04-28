@@ -6,7 +6,7 @@ local timer_at = ngx.timer.at
 
 local ConcurrentConnectionsQuotaHandler = {
    PRIORITY = 901,
-   VERSION = "0.1.3",
+   VERSION = "0.1.4",
 }
 
 local EMPTY = {}
