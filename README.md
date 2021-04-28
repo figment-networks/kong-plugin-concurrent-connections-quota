@@ -4,12 +4,16 @@ Kong plugin to make sure user can have a limited number of WebSocket connections
 
 ## Testing
 
-To run tests install
+To run lint and tests install
 [kong-pongo](https://github.com/Kong/kong-pongo#installation)
 (tooling to run kong plugin tests)
 
 ```sh
-$ pongo run
+$ pongo lint
+```
+
+```sh
+$ KONG_VERSION=nightly pongo run
 ```
 
 ## Releasing
