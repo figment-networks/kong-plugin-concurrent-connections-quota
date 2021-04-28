@@ -5,7 +5,7 @@ ${TRACE:+set -x}
 
 VERSION="${VERSION:-latest}"
 HANDLER_FILE=./kong/plugins/concurrent-connections-quota/handler.lua
-ROCKSPEC=$(find . -type f -name '*.rockspec')
+ROCKSPEC=$(find . -path ./servroot -prune -false -o -name '*.rockspec')
 LUAROCKS_API_KEY="${LUAROCKS_API_KEY}"
 
 _red='' _blue='' _white='' _normal=''
