@@ -8,6 +8,7 @@ local shm = ngx.shared.kong_rate_limiting_counters
 local fmt = string.format
 
 local EMPTY_UUID = "00000000-0000-0000-0000-000000000000"
+local EXPIRATION = 10*60
 
 local function is_present(str)
   return str and str ~= "" and str ~= null
@@ -135,6 +136,7 @@ return {
 
       red:init_pipeline()
       red:incrby(cache_key, value)
+      red:expire(cache_key, EXPIRATION)
 
       local _, err = red:commit_pipeline()
       if err then
@@ -161,6 +163,7 @@ return {
 
       red:init_pipeline()
       red:decrby(cache_key, value)
+      red:expire(cache_key, EXPIRATION)
 
       local _, err = red:commit_pipeline()
       if err then
